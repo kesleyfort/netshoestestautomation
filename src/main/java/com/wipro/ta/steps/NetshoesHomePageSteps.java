@@ -1,5 +1,7 @@
 package com.wipro.ta.steps;
 
+import com.wipro.ta.pages.NetshoesPage;
+import com.wipro.ta.utils.Utils;
 import org.apache.log4j.Logger;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
@@ -12,11 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
 @Component
 public class NetshoesHomePageSteps extends AbstractSteps {
-
+    @Autowired
+    NetshoesPage netshoesPage;
+    @Autowired
+    Utils utils;
     @Value("${home.url}")
     private String NETSHOES_HOMEPAGE_URL;
 
@@ -33,64 +38,54 @@ public class NetshoesHomePageSteps extends AbstractSteps {
 
     @Then("I should see the search bar")
     public void thenProductListIsDisplayed() {
-        WebElement contentDiv = webDriverProvider.get().findElement(By.id("search-input"));
         Assert.assertTrue("The search bar was expected to be displayed, but it was not."
-                , contentDiv.isDisplayed());
+                , netshoesPage.searchBar.isDisplayed());
     }
+
     @Then("I should search for something")
-    public void searchForSomething(){
-        WebElement contentDiv = webDriverProvider.get().findElement(By.id("search-input"));
-        contentDiv.sendKeys("tênis nike");
-        contentDiv.submit();
+    public void searchForSomething() {
+        netshoesPage.searchBar.sendKeys("Tênis Nike");
+        netshoesPage.searchBar.submit();
 
     }
+
     @Then("I should see the something's listing")
-    public void seeSomethingsList(){
-        WebElement contentDiv = webDriverProvider.get().findElement(By.id("item-list"));
+    public void seeSomethingsList() {
         Assert.assertTrue("Something was expected to be displayed, but it was not."
-                , contentDiv.isDisplayed());
+                , netshoesPage.itemList.isDisplayed());
     }
 
-    @When("I click on a item")
+    @When("I click on a random item")
     public void iClickOnAItem() {
-        WebElement item = webDriverProvider.get().findElement(By.className("item-card__description__product-name"));
-        item.click();
+        Random random = new Random();
+        netshoesPage.resultsFromSearch.get(random.nextInt(netshoesPage.resultsFromSearch.size())).click();
+
 
     }
-    @Then("I should select the item's size")
-    public void iShouldSelectTheItemsSize(){
-        WebElement item = webDriverProvider.get().findElement(By.xpath("//a[@data-label='39']"));
-        item.click();
+
+    @Then("I should select a random available item's size")
+    public void iShouldSelectTheItemsSize() {
+        Random random = new Random();
+        netshoesPage.productSizeOptions.get(random.nextInt(netshoesPage.productSizeOptions.size())).click();
     }
 
     @Then("I should add a item to the cart")
     public void iShouldAddAItemToTheCart() {
-        TimeUnit timeUnit = TimeUnit.SECONDS;
-        webDriverProvider.get().manage().timeouts().implicitlyWait(10L, timeUnit);
-
-        WebElement buyNowButton = webDriverProvider.get().findElement(By.id("buy-button-now"));
-        if(buyNowButton.isDisplayed()) {
-            buyNowButton.click();
-        } else{
-            Assert.assertTrue("Buy now button was expected to be displayed, but it was not."
-                    , buyNowButton.isDisplayed());
-        }
+        utils.waitForElement(By.id("buy-button-now")).click();
     }
 
     @When("I fill the CEP field")
     public void iFillTheCEPField() {
-        TimeUnit timeUnit = TimeUnit.SECONDS;
-        webDriverProvider.get().manage().timeouts().implicitlyWait(10l, timeUnit);
-        WebElement cep = webDriverProvider.get().findElement(By.id("cep"));
+        WebElement cep = utils.waitForElement(By.id("cep"));
         cep.sendKeys("80010180");
         cep.submit();
+
     }
 
     @Then("I should see the shipping value")
     public void iShouldSeeTheShippingValue() {
-        WebElement shippingValue = webDriverProvider.get().findElement(By.className("summary__item-value"));
         Assert.assertTrue("Buy now button was expected to be displayed, but it was not."
-                , shippingValue.isDisplayed());
+                , netshoesPage.shippingValue.isDisplayed());
     }
 
 }
